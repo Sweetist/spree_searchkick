@@ -11,7 +11,7 @@ Spree::ProductsController.class_eval do
 
   def autocomplete
     keywords = params[:keywords] ||= nil
-    json = Spree::Product.autocomplete(keywords)
+    json = Spree::Product.autocomplete(keywords, current_spree_user.vendor.id)
     render json: json
   end
 
