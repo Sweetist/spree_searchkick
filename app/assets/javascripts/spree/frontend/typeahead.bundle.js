@@ -1662,7 +1662,14 @@
                 _.each(suggestions, function getSuggestionNode(suggestion) {
                     var $el, context;
                     context = that._injectQuery(query, suggestion);
-                    $el = $(that.templates.suggestion(context)).data(keys.obj, suggestion).data(keys.val, that.displayFn(suggestion)).addClass(that.classes.suggestion + " " + that.classes.selectable);
+                    if (!_.isString(context)) {
+                        var $is_json = true;
+                        $el = $(that.templates.suggestion(context.name)).data(keys.obj, suggestion).data(keys.val, that.displayFn(suggestion)).addClass(that.classes.suggestion + " " + that.classes.selectable);
+                        $el.html("<a href="+context.url+">"+context.name+"</a>");
+                        context = context.name;
+                    } else{
+                        $el = $(that.templates.suggestion(context)).data(keys.obj, suggestion).data(keys.val, that.displayFn(suggestion)).addClass(that.classes.suggestion + " " + that.classes.selectable);
+                    }
                     fragment.appendChild($el[0]);
                 });
                 this.highlight && highlight({
@@ -2162,6 +2169,12 @@
             },
             select: function select($selectable) {
                 var data = this.menu.getSelectableData($selectable);
+                if($is_json(data.val)) {
+                    data = {
+                                val: data.obj.name,
+                                obj: data.obj.name 
+                            }
+                }
                 if (data && !this.eventBus.before("select", data.obj)) {
                     this.input.setQuery(data.val, true);
                     this.eventBus.trigger("select", data.obj);
@@ -2192,7 +2205,14 @@
                 if (!cancelMove && !this.eventBus.before("cursorchange", payload)) {
                     this.menu.setCursor($candidate);
                     if (data) {
-                        this.input.setInputValue(data.val);
+                        var val;
+                        try{
+                            val = JSON.parse(data.val).name;
+                        }
+                        catch (e){
+                            val = data.val;
+                        }
+                        this.input.setInputValue(val);
                     } else {
                         this.input.resetInputValue();
                         this._updateHint();
